@@ -2,3 +2,8 @@
 /.git
 composer.lock
 /vendor
+.vs
+.vscode
+packages
+sdk/CSharpSDK/CSharpSDK/bin
+sdk/CSharpSDK/CSharpSDK/obj
