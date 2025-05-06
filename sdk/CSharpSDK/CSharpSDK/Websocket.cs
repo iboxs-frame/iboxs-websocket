@@ -16,8 +16,15 @@ namespace CSharpSDK
         private const int HeartbeatInterval = 5000; // 心跳间隔，单位毫秒
         private const int ReconnectInterval = 5000; // 重连间隔，单位毫秒
 
-        public bool Connect(string webSocketUrl)
+        // 定义消息接收事件
+        public event Action<string> MessageReceived;
+
+        public bool Connect(string webSocketUrl, Action<string> messageReceivedCallback = null)
         {
+            if (messageReceivedCallback != null)
+            {
+                MessageReceived += messageReceivedCallback;
+            }
             this.webSocketUrl = webSocketUrl;
             try
             {
@@ -69,6 +76,7 @@ namespace CSharpSDK
             try
             {
                 byte[] buffer = new byte[1024];
+                var fullMessage = new System.Text.StringBuilder();
                 while (webSocket.State == WebSocketState.Open && !cancellationTokenSource.Token.IsCancellationRequested)
                 {
                     var receiveTask = webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationTokenSource.Token);
@@ -76,9 +84,14 @@ namespace CSharpSDK
                     var result = receiveTask.Result;
                     if (result.MessageType == WebSocketMessageType.Text)
                     {
-                        string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                        // 接受到消息
-
+                        string messagePart = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        fullMessage.Append(messagePart);
+                        if (result.EndOfMessage)
+                        {
+                            // 消息接收完毕，触发消息接收事件
+                            MessageReceived?.Invoke(fullMessage.ToString());
+                            fullMessage.Clear();
+                        }
                     }
                 }
                 StartReconnect();
@@ -124,7 +137,7 @@ namespace CSharpSDK
             {
                 Thread.Sleep(ReconnectInterval);
                 Close();
-                Connect(webSocketUrl);
+                Connect(webSocketUrl,this.MessageReceived);
             }
         }
 
