@@ -1,10 +1,10 @@
 <?php
-namespace iboxs\IM;
+namespace iboxs\websocket;
 
 /**
- * @see \iboxs\IM\lib\Base
- * @package iboxs\IM
- * @mixin \iboxs\IM\lib\Base
+ * @see \iboxs\websocket\lib\Base
+ * @package iboxs\websocket
+ * @mixin \iboxs\websocket\lib\Base
  * @version 2.0
  * @author ITLattice https://github.com/itlattice https://gitee.com/gz8 联系QQ：320587491 微信：itlattices
  * @license MIT
