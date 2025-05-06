@@ -2,7 +2,7 @@
     "name": "iboxs/websocket",
     "description": "Websocket",
     "type": "1",
-    "license": "Apache License",
+    "license": "Apache-2.0",
     "authors": [
         {
             "name": "zqu",
