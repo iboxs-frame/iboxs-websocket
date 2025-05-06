@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,16 +13,16 @@ namespace CSharpSDK
 {
     public partial class Form1 : Form
     {
-        WebSocket webSocket;
+        public static WebSocket webSocket;
         public Form1()
         {
             InitializeComponent();
-            this.webSocket = new WebSocket();
+            webSocket = new WebSocket();
         }
 
         void OnMessageReceived(string message)
         {
-            listBox1.Items.Add("接收到消息:" + message);
+            this.receiveMsg(message);
         }
 
         
@@ -30,7 +31,7 @@ namespace CSharpSDK
         {
             if (button1.Text == "链接")
             {
-                bool res = this.webSocket.Connect(textBox1.Text.Trim(), OnMessageReceived);
+                bool res = webSocket.Connect(textBox1.Text.Trim(), OnMessageReceived);
                 if (res)
                 {
                     button1.Text = "断开";
@@ -38,14 +39,34 @@ namespace CSharpSDK
             }
             else
             {
-                this.webSocket.Close();
+                webSocket.Close();
                 button1.Text = "链接";
             }
         }
 
-        public static void receiveMsg(string msg)
+        public void receiveMsg(string msg)
         {
-            MessageBox.Show("接受到消息", msg);
+            JObject jobj = MsgHandle.parseJson(msg);
+            bool encrpt = (bool)jobj["encrypt"];
+
+            string type = (string)jobj["type"];
+            string sub_type = (string)jobj["sub_type"];
+            JObject data = (JObject)jobj["data"];
+            if (encrpt) //消息加密
+            {
+
+            }
+            switch (type)
+            {
+                case "connected":
+                    msgHandle.Connected connected = new msgHandle.Connected();
+                    switch (sub_type){
+                        case "publickey":
+                            connected.publicKey(data,jobj);
+                            break;
+                    }
+                    break;
+            }
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -56,7 +77,7 @@ namespace CSharpSDK
                 return;
             }
             listBox1.Items.Add("发送消息：" + msg);
-            this.webSocket.SendMsg(msg);
+            webSocket.SendMsg(msg);
         }
 
         private void button3_Click(object sender, EventArgs e)
