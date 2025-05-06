@@ -1,0 +1,27 @@
+{
+    "name": "iboxs/websocket",
+    "description": "Websocket",
+    "type": "1",
+    "license": "Apache License",
+    "authors": [
+        {
+            "name": "zqu",
+            "email": "zqu1016@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "iboxs/iboxs-worker": "^1.0",
+        "workerman/gateway-worker": "^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "iboxs\\websocket\\": "src/"
+        }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "iboxs\\websocket\\Client::install"
+        ]
+    }
+}
