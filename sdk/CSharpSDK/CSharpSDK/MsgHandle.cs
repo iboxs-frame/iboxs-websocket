@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace CSharpSDK
 
         public static string toJson(JObject jsonObject)
         {
-            string json = jsonObject.ToString();
+            string json = jsonObject.ToString(Formatting.None);
             return json;
         } 
     }

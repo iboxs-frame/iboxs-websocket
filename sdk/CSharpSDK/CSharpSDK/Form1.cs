@@ -63,6 +63,7 @@ namespace CSharpSDK
             {
                 data = (JObject)jobj["data"];
             }
+            listBox1.Items.Add("收到消息：" + MsgHandle.toJson(data));
             switch (type)
             {
                 case "connected":
@@ -93,6 +94,7 @@ namespace CSharpSDK
                 return;
             }
             listBox1.Items.Add("发送消息：" + msg);
+            textBox2.Text = "";
             JObject header = new JObject();
             JObject data = new JObject();
             data["user_id"] = "5";
