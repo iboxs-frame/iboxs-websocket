@@ -11,6 +11,7 @@
     ],
     "require": {
         "php": ">=7.2",
+        "iboxs/redis":"*",
         "iboxs/iboxs-worker": "^1.0",
         "workerman/gateway-worker": "^4.0"
     },

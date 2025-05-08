@@ -10,11 +10,13 @@ namespace iboxs\websocket;
  * @license MIT
  * @method static void alipayWebpay(string $no,float $amount,string $orderName) 支付宝网页支付（含手机端和PC端）[直接跳转]
  */
-class Client
+class Websocket
 {
     public static function install(){
         if(function_exists('root_path')){
             
         }
     }
+
+    
 }
