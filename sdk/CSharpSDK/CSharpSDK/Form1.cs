@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using CSharpSDK.encrypt;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -51,20 +52,35 @@ namespace CSharpSDK
 
             string type = (string)jobj["type"];
             string sub_type = (string)jobj["sub_type"];
-            JObject data = (JObject)jobj["data"];
+            JObject data = new JObject();
             if (encrpt) //消息加密
             {
-
+                string eData = (string)jobj["data"];
+                string json = AesHandle.Decrypt(eData, Common.chatData.chatAesKey, Common.chatData.chatAesIV);
+                data = MsgHandle.parseJson(json);
+            }
+            else
+            {
+                data = (JObject)jobj["data"];
             }
             switch (type)
             {
                 case "connected":
-                    msgHandle.Connected connected = new msgHandle.Connected();
-                    switch (sub_type){
-                        case "publickey":
-                            connected.publicKey(data,jobj);
-                            break;
-                    }
+                    subTypeConnectedHandle(sub_type,data,jobj);
+                    break;
+            }
+        }
+
+        private void subTypeConnectedHandle(string sub_type,JObject data,JObject jobj)
+        {
+            msgHandle.Connected connected = new msgHandle.Connected();
+            switch (sub_type)
+            {
+                case "publickey":
+                    connected.publicKey(data, jobj);
+                    break;
+                case "confirm":
+                    connected.confirm(data);
                     break;
             }
         }
@@ -77,7 +93,12 @@ namespace CSharpSDK
                 return;
             }
             listBox1.Items.Add("发送消息：" + msg);
-            webSocket.SendMsg(msg);
+            JObject header = new JObject();
+            JObject data = new JObject();
+            data["user_id"] = "5";
+            data["send"] = "send";
+            data["content"] = msg;
+            Common.sendMsg("message", "message", "0", data, header);
         }
 
         private void button3_Click(object sender, EventArgs e)

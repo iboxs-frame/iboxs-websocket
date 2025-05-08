@@ -13,8 +13,25 @@ namespace CSharpSDK
         public class chatData
         {
             public static string chatAesKey = "";
-            public static string chatAesIV = "IBOXSADMIN8414sh";
+            public static string chatAesIV = "ef05c4a7b186b01d";
             public static string chatKey = "adsadasdwdasxsa"; //通信秘钥
+
+            public static string publicKey = ""; //公钥（存储用）
+        }
+
+        public static string GenerateAes(int length)
+        {
+            string Characters = "abcdef0123456789";
+            Random Random = new Random();
+            StringBuilder result = new StringBuilder(length);
+
+            for (int i = 0; i < length; i++)
+            {
+                int index = Random.Next(Characters.Length);
+                result.Append(Characters[index]);
+            }
+
+            return result.ToString();
         }
 
         public static string Generate(int length)
@@ -45,7 +62,7 @@ namespace CSharpSDK
             {
                 string dataJson = MsgHandle.toJson(data);
                 string dataAes =CSharpSDK.encrypt.AesHandle.Encrypt(dataJson,Common.chatData.chatAesKey,Common.chatData.chatAesIV);
-                obj["data"] = dataAes;
+                obj["data"] =  dataAes;
             }
             else
             {

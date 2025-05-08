@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
+using System.IO;
 
 namespace CSharpSDK.encrypt
 {
@@ -14,8 +15,24 @@ namespace CSharpSDK.encrypt
             byte[] encrypted;
             using (Aes aesAlg = Aes.Create())
             {
-                aesAlg.Key = Encoding.UTF8.GetBytes(key);
-                aesAlg.IV = Encoding.UTF8.GetBytes(iv);
+                aesAlg.Padding = PaddingMode.PKCS7;
+                aesAlg.Mode = CipherMode.CBC;
+
+                byte[] keyBytes = Encoding.UTF8.GetBytes(key);
+                byte[] ivBytes = Encoding.UTF8.GetBytes(iv);
+
+                if (keyBytes.Length != aesAlg.KeySize / 8)
+                {
+                    throw new ArgumentException($"Key must be {aesAlg.KeySize / 8} bytes long.");
+                }
+
+                if (ivBytes.Length != aesAlg.BlockSize / 8)
+                {
+                    throw new ArgumentException($"IV must be {aesAlg.BlockSize / 8} bytes long.");
+                }
+
+                aesAlg.Key = keyBytes;
+                aesAlg.IV = ivBytes;
 
                 ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
 
@@ -34,29 +51,53 @@ namespace CSharpSDK.encrypt
             return Convert.ToBase64String(encrypted);
         }
 
-        public static string Decrypt(string cipherText, string key, string iv)
+        public static string Decrypt(string cipherText, string keyString, string ivString)
         {
-            string plaintext = null;
-            byte[] cipherBytes = Convert.FromBase64String(cipherText);
             using (Aes aesAlg = Aes.Create())
             {
-                aesAlg.Key = Encoding.UTF8.GetBytes(key);
-                aesAlg.IV = Encoding.UTF8.GetBytes(iv);
+                aesAlg.Padding = PaddingMode.PKCS7;
+                aesAlg.Mode = CipherMode.CBC;
 
-                ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+                byte[] keyBytes = Encoding.UTF8.GetBytes(keyString);
+                byte[] ivBytes = Encoding.UTF8.GetBytes(ivString);
 
-                using (System.IO.MemoryStream msDecrypt = new System.IO.MemoryStream(cipherBytes))
+                if (keyBytes.Length != aesAlg.KeySize / 8)
                 {
-                    using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                    throw new ArgumentException($"Key must be {aesAlg.KeySize / 8} bytes long.");
+                }
+
+                if (ivBytes.Length != aesAlg.BlockSize / 8)
+                {
+                    throw new ArgumentException($"IV must be {aesAlg.BlockSize / 8} bytes long.");
+                }
+
+                aesAlg.Key = keyBytes;
+                aesAlg.IV = ivBytes;
+
+                byte[] cipherBytes = Convert.FromBase64String(cipherText);
+
+                using (MemoryStream memoryStream = new MemoryStream(cipherBytes))
+                {
+                    using (ICryptoTransform decryptor = aesAlg.CreateDecryptor())
                     {
-                        using (System.IO.StreamReader srDecrypt = new System.IO.StreamReader(csDecrypt))
+                        using (CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
                         {
-                            plaintext = srDecrypt.ReadToEnd();
+                            using (StreamReader reader = new StreamReader(cryptoStream))
+                            {
+                                try
+                                {
+                                    return reader.ReadToEnd();
+                                }
+                                catch (CryptographicException ex)
+                                {
+                                    Console.WriteLine($"Decryption error: {ex.Message}");
+                                    throw;
+                                }
+                            }
                         }
                     }
                 }
             }
-            return plaintext;
         }
     }
 }

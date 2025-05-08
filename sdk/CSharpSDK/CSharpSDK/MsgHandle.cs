@@ -11,6 +11,10 @@ namespace CSharpSDK
     {
         public static JObject parseJson(string json)
         {
+            if (json == "null" || json == null)
+            {
+                return new JObject();
+            }
             JObject j = JObject.Parse(json);
             return j;
         }

@@ -5,6 +5,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Security;
 
 namespace CSharpSDK.encrypt
 {
@@ -12,20 +15,20 @@ namespace CSharpSDK.encrypt
     {
         public static string EncryptWithPublicKey(string plainText, string publicKeyPem)
         {
-            MessageBox.Show(plainText,publicKeyPem);
-            byte[] publicKeyBytes = Convert.FromBase64String(ExtractBase64FromPem(publicKeyPem));
-            using (RSA rsa = RSA.Create())
+            using (var reader = new System.IO.StringReader(publicKeyPem))
             {
-                // 旧版本.NET框架使用RSAParameters导入公钥
-                var rsaParameters = new RSAParameters();
-                rsaParameters.Modulus = new byte[256];
-                rsaParameters.Exponent = new byte[3] { 1, 0, 1 };
-                Buffer.BlockCopy(publicKeyBytes, 29, rsaParameters.Modulus, 0, 256);
-                rsa.ImportParameters(rsaParameters);
+                var pemReader = new PemReader(reader);
+                var publicKeyParams = (RsaKeyParameters)pemReader.ReadObject();
+                var rsaParameters = DotNetUtilities.ToRSAParameters(publicKeyParams);
 
-                byte[] dataToEncrypt = Encoding.UTF8.GetBytes(plainText);
-                byte[] encryptedData = rsa.Encrypt(dataToEncrypt, RSAEncryptionPadding.Pkcs1);
-                return Convert.ToBase64String(encryptedData);
+                using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
+                {
+                    rsa.ImportParameters(rsaParameters);
+                    byte[] dataToEncrypt = Encoding.UTF8.GetBytes(plainText);
+                    byte[] encryptedData = rsa.Encrypt(dataToEncrypt, false);
+                    string encryptedText = Convert.ToBase64String(encryptedData);
+                    return encryptedText;
+                }
             }
         }
 
